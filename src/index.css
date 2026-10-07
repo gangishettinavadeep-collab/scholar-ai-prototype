@@ -1,0 +1,397 @@
+/* DO NOT CHANGE */
+@import "tailwindcss";
+@import "tw-animate-css";
+@custom-variant dark (&:is(.dark *));
+
+/* DO NOT CHANGE */
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* CHANGE VALUES FOR THEME — Scholar AI: futuristic 3D AI university palette.
+   Deep navy/indigo space, cyan → blue → violet → magenta energy. */
+:root {
+  --radius: 1rem;
+  --background: #05071a;
+  --foreground: #e9edff;
+  --card: #0b1130;
+  --card-foreground: #e9edff;
+  --popover: #0b1130;
+  --popover-foreground: #e9edff;
+  --primary: #22d3ee;
+  --primary-foreground: #04121c;
+  --secondary: #171f4d;
+  --secondary-foreground: #dce4ff;
+  --muted: #131a42;
+  --muted-foreground: #98a3cf;
+  --accent: #232c68;
+  --accent-foreground: #f2f4ff;
+  --destructive: #fb7185;
+  --border: rgba(255, 255, 255, 0.09);
+  --input: rgba(255, 255, 255, 0.14);
+  --ring: #38bdf8;
+  --chart-1: #22d3ee;
+  --chart-2: #818cf8;
+  --chart-3: #e879f9;
+  --chart-4: #34d399;
+  --chart-5: #fbbf24;
+  --sidebar: #070b24;
+  --sidebar-foreground: #d7dff9;
+  --sidebar-primary: #22d3ee;
+  --sidebar-primary-foreground: #04121c;
+  --sidebar-accent: rgba(255, 255, 255, 0.06);
+  --sidebar-accent-foreground: #f2f4ff;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #22d3ee;
+}
+
+.dark {
+  --radius: 1rem;
+  --background: #05071a;
+  --foreground: #e9edff;
+  --card: #0b1130;
+  --card-foreground: #e9edff;
+  --popover: #0b1130;
+  --popover-foreground: #e9edff;
+  --primary: #22d3ee;
+  --primary-foreground: #04121c;
+  --secondary: #171f4d;
+  --secondary-foreground: #dce4ff;
+  --muted: #131a42;
+  --muted-foreground: #98a3cf;
+  --accent: #232c68;
+  --accent-foreground: #f2f4ff;
+  --destructive: #fb7185;
+  --border: rgba(255, 255, 255, 0.09);
+  --input: rgba(255, 255, 255, 0.14);
+  --ring: #38bdf8;
+  --chart-1: #22d3ee;
+  --chart-2: #818cf8;
+  --chart-3: #e879f9;
+  --chart-4: #34d399;
+  --chart-5: #fbbf24;
+  --sidebar: #070b24;
+  --sidebar-foreground: #d7dff9;
+  --sidebar-primary: #22d3ee;
+  --sidebar-primary-foreground: #04121c;
+  --sidebar-accent: rgba(255, 255, 255, 0.06);
+  --sidebar-accent-foreground: #f2f4ff;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #22d3ee;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+      sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04";
+    color-scheme: dark;
+  }
+  button:not([disabled]),
+  [role="button"]:not([disabled]) {
+    cursor: pointer;
+  }
+  ::selection {
+    background: rgba(34, 211, 238, 0.3);
+    color: #ffffff;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #070b24;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(129, 140, 248, 0.35);
+    border-radius: 999px;
+    border: 2px solid #070b24;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(34, 211, 238, 0.5);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Scholar AI — futuristic 3D AI University styling utilities          */
+/* ------------------------------------------------------------------ */
+
+.font-display {
+  font-family: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.text-gradient {
+  background: linear-gradient(
+    96deg,
+    #67e8f9 0%,
+    #60a5fa 32%,
+    #a78bfa 64%,
+    #e879f9 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-gradient-soft {
+  background: linear-gradient(96deg, #e9edff 0%, #a5b4fc 55%, #67e8f9 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Frosted glass card — the base of the whole product's surface language */
+.glass {
+  background: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 0.075) 0%,
+    rgba(255, 255, 255, 0.028) 45%,
+    rgba(129, 140, 248, 0.06) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.glass-deep {
+  background: linear-gradient(
+    155deg,
+    rgba(11, 17, 48, 0.92) 0%,
+    rgba(5, 7, 26, 0.96) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.glass-hover {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.35s ease, box-shadow 0.35s ease;
+}
+.glass-hover:hover {
+  transform: translateY(-4px);
+  border-color: rgba(34, 211, 238, 0.42);
+  box-shadow: 0 22px 50px -28px rgba(34, 211, 238, 0.55),
+    0 0 0 1px rgba(34, 211, 238, 0.12) inset;
+}
+
+/* Gradient hairline used to separate sections / frame hero panels */
+.hairline {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(129, 140, 248, 0.55),
+    rgba(34, 211, 238, 0.5),
+    transparent
+  );
+}
+
+/* Perspective floor used behind hero / auth scenes */
+.grid-floor {
+  background-image: linear-gradient(
+      rgba(129, 140, 248, 0.28) 1px,
+      transparent 1px
+    ),
+    linear-gradient(90deg, rgba(129, 140, 248, 0.28) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(
+    ellipse at center,
+    #000 10%,
+    rgba(0, 0, 0, 0.45) 50%,
+    transparent 78%
+  );
+  mask-image: radial-gradient(
+    ellipse at center,
+    #000 10%,
+    rgba(0, 0, 0, 0.45) 50%,
+    transparent 78%
+  );
+}
+
+.starfield {
+  background-image: radial-gradient(
+      1.4px 1.4px at 18% 24%,
+      rgba(255, 255, 255, 0.75),
+      transparent
+    ),
+    radial-gradient(
+      1.2px 1.2px at 72% 18%,
+      rgba(103, 232, 249, 0.8),
+      transparent
+    ),
+    radial-gradient(
+      1.6px 1.6px at 42% 68%,
+      rgba(232, 121, 249, 0.65),
+      transparent
+    ),
+    radial-gradient(
+      1.2px 1.2px at 86% 74%,
+      rgba(255, 255, 255, 0.55),
+      transparent
+    ),
+    radial-gradient(
+      1.1px 1.1px at 8% 82%,
+      rgba(129, 140, 248, 0.7),
+      transparent
+    ),
+    radial-gradient(
+      1.3px 1.3px at 60% 42%,
+      rgba(255, 255, 255, 0.45),
+      transparent
+    );
+}
+
+/* Soft volumetric glows */
+.glow-cyan {
+  box-shadow: 0 0 60px -18px rgba(34, 211, 238, 0.75);
+}
+.glow-violet {
+  box-shadow: 0 0 60px -18px rgba(139, 92, 246, 0.75);
+}
+
+.orb {
+  border-radius: 9999px;
+  filter: blur(46px);
+  opacity: 0.55;
+}
+
+.gradient-button {
+  background: linear-gradient(120deg, #22d3ee 0%, #3b82f6 45%, #a855f7 100%);
+  color: #04121c;
+  box-shadow: 0 14px 34px -16px rgba(59, 130, 246, 0.85);
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.25s ease, filter 0.25s ease;
+}
+.gradient-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+  box-shadow: 0 20px 44px -16px rgba(139, 92, 246, 0.9);
+}
+.gradient-button:active {
+  transform: translateY(0);
+}
+
+/* Floating 3D motion */
+@keyframes sa-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -14px, 0);
+  }
+}
+@keyframes sa-float-soft {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(var(--tilt, 0deg));
+  }
+  50% {
+    transform: translate3d(0, -9px, 0) rotate(var(--tilt, 0deg));
+  }
+}
+@keyframes sa-spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes sa-pulse-glow {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+@keyframes sa-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-float {
+  animation: sa-float 6s ease-in-out infinite;
+}
+.animate-float-soft {
+  animation: sa-float-soft 7s ease-in-out infinite;
+}
+.animate-spin-slow {
+  animation: sa-spin-slow 26s linear infinite;
+}
+.animate-pulse-glow {
+  animation: sa-pulse-glow 4.5s ease-in-out infinite;
+}
+.animate-shimmer {
+  background-size: 200% 100%;
+  animation: sa-shimmer 6s linear infinite;
+}
+
+.anim-delay-1 {
+  animation-delay: 1s;
+}
+.anim-delay-2 {
+  animation-delay: 2s;
+}
+.anim-delay-3 {
+  animation-delay: 3s;
+}
+.anim-delay-4 {
+  animation-delay: 4s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
