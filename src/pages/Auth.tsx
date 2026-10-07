@@ -93,9 +93,12 @@ function Auth({ redirectAfterAuth = "/dashboard" }: AuthProps = {}) {
   const store = useScholarStore();
   const activeStudent = getActiveStudent(store);
 
-  const [mode, setMode] = useState<"signin" | "register" | "forgot">(
-    searchParams.get("mode") === "register" ? "register" : "signin",
-  );
+  const [mode, setMode] = useState<"signin" | "register" | "forgot">(() => {
+    const requested = searchParams.get("mode");
+    return requested === "register" || requested === "forgot"
+      ? requested
+      : "signin";
+  });
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);

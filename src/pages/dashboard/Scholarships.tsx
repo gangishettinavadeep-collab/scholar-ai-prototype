@@ -35,6 +35,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import {
   DEMO_DATA_NOTICE,
+  ELIGIBILITY_OPTIONS,
   SCHOLARSHIP_CATEGORIES,
   SCHOLARSHIP_LEVELS,
   SCHOLARSHIPS,
@@ -53,16 +54,6 @@ import {
   useScholarStore,
   type Application,
 } from "@/lib/scholar/store";
-
-const ELIGIBILITY_OPTIONS = [
-  { value: "any", label: "Any eligibility" },
-  { value: "profile", label: "Matches my profile" },
-  { value: "all-years", label: "Open to all years" },
-  { value: "final", label: "Final year students" },
-  { value: "early", label: "First & second year" },
-  { value: "postgrad", label: "Postgraduate students" },
-  { value: "need", label: "Need-based support" },
-];
 
 export default function Scholarships() {
   const store = useScholarStore();
@@ -86,6 +77,17 @@ export default function Scholarships() {
     () => Array.from(new Set(SCHOLARSHIPS.map((s) => s.location))).sort(),
     [],
   );
+
+  // Radix only portals the selected item's text into the trigger client-side
+  // (after mount), which leaves every filter blank in SSR / first paint.
+  // Passing the current label as children keeps the trigger filled at all
+  // times — Radix renders `children` whenever a value is set.
+  const categoryLabel = category === "all" ? "All categories" : category;
+  const levelLabel = level === "all" ? "All education levels" : level;
+  const locationLabel = location === "all" ? "All locations" : location;
+  const eligibilityLabel =
+    ELIGIBILITY_OPTIONS.find((option) => option.value === eligibility)
+      ?.label ?? "Any eligibility";
 
   const results = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -204,7 +206,9 @@ export default function Scholarships() {
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Select value={category} onValueChange={setCategory}>
             <SelectTrigger className="h-10 w-full border-white/12 bg-white/5">
-              <SelectValue placeholder="Category" />
+              <SelectValue placeholder="Category">
+                {categoryLabel}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent className="border-white/12 bg-[#0b1130]">
               <SelectItem value="all">All categories</SelectItem>
@@ -218,7 +222,9 @@ export default function Scholarships() {
 
           <Select value={level} onValueChange={setLevel}>
             <SelectTrigger className="h-10 w-full border-white/12 bg-white/5">
-              <SelectValue placeholder="Education level" />
+              <SelectValue placeholder="Education level">
+                {levelLabel}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent className="border-white/12 bg-[#0b1130]">
               <SelectItem value="all">All education levels</SelectItem>
@@ -234,7 +240,9 @@ export default function Scholarships() {
 
           <Select value={location} onValueChange={setLocation}>
             <SelectTrigger className="h-10 w-full border-white/12 bg-white/5">
-              <SelectValue placeholder="Location" />
+              <SelectValue placeholder="Location">
+                {locationLabel}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent className="border-white/12 bg-[#0b1130]">
               <SelectItem value="all">All locations</SelectItem>
@@ -248,7 +256,9 @@ export default function Scholarships() {
 
           <Select value={eligibility} onValueChange={setEligibility}>
             <SelectTrigger className="h-10 w-full border-white/12 bg-white/5">
-              <SelectValue placeholder="Eligibility" />
+              <SelectValue placeholder="Eligibility">
+                {eligibilityLabel}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent className="border-white/12 bg-[#0b1130]">
               {ELIGIBILITY_OPTIONS.map((item) => (

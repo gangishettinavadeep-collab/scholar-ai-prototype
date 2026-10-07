@@ -95,6 +95,21 @@ export const SCHOLARSHIP_CATEGORIES: ScholarshipCategory[] = [
   "Entrepreneurship",
 ];
 
+/**
+ * Options for the eligibility filter dropdown on the scholarships page.
+ * Lives here (not in the page component) so both the UI and verification
+ * scripts can read the same list — dropdown items are portal-gated in the DOM.
+ */
+export const ELIGIBILITY_OPTIONS: { value: string; label: string }[] = [
+  { value: "any", label: "Any eligibility" },
+  { value: "profile", label: "Matches my profile" },
+  { value: "all-years", label: "Open to all years" },
+  { value: "final", label: "Final year students" },
+  { value: "early", label: "First & second year" },
+  { value: "postgrad", label: "Postgraduate students" },
+  { value: "need", label: "Need-based support" },
+];
+
 /** Values used by the eligibility filter on the scholarships page. */
 export function matchesEligibilityFilter(
   scholarship: Scholarship,
