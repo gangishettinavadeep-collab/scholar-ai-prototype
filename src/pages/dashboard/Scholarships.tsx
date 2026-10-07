@@ -38,7 +38,6 @@ import {
   ELIGIBILITY_OPTIONS,
   SCHOLARSHIP_CATEGORIES,
   SCHOLARSHIP_LEVELS,
-  SCHOLARSHIPS,
   formatDeadline,
   isClosingSoon,
   isExpired,
@@ -58,6 +57,7 @@ import {
 export default function Scholarships() {
   const store = useScholarStore();
   const student = getActiveStudent(store);
+  const scholarships = store.scholarships;
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -74,8 +74,8 @@ export default function Scholarships() {
   const [submitted, setSubmitted] = useState<Application | null>(null);
 
   const locations = useMemo(
-    () => Array.from(new Set(SCHOLARSHIPS.map((s) => s.location))).sort(),
-    [],
+    () => Array.from(new Set(scholarships.map((s) => s.location))).sort(),
+    [scholarships],
   );
 
   // Radix only portals the selected item's text into the trigger client-side
@@ -91,7 +91,7 @@ export default function Scholarships() {
 
   const results = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    return SCHOLARSHIPS.filter((scholarship) => {
+    return scholarships.filter((scholarship) => {
       if (needle) {
         const haystack = [
           scholarship.name,
@@ -121,10 +121,10 @@ export default function Scholarships() {
       if (aMatch !== bMatch) return aMatch ? -1 : 1;
       return a.deadline.localeCompare(b.deadline);
     });
-  }, [query, category, level, location, eligibility, student]);
+  }, [query, category, level, location, eligibility, scholarships, student]);
 
   const detail = detailId
-    ? SCHOLARSHIPS.find((s) => s.id === detailId) ?? null
+    ? scholarships.find((s) => s.id === detailId) ?? null
     : null;
 
   const filtersActive =
@@ -273,7 +273,7 @@ export default function Scholarships() {
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
           <span>
             Showing <span className="font-semibold text-foreground">{results.length}</span>{" "}
-            of {SCHOLARSHIPS.length} demo scholarships
+            of {scholarships.length} demo scholarships
             {appliedCount > 0 && <> · {appliedCount} applied by you</>}
           </span>
           {filtersActive && (

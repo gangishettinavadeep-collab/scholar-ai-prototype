@@ -1,6 +1,6 @@
 import '@vly-ai/integrations';
 import { Toaster } from "@/components/ui/sonner";
-import { RequireStudent } from "@/components/RequireStudent";
+import { RequireAdmin, RequireStudent } from "@/components/RequireStudent";
 import { VlyToolbar } from "../vly-toolbar-readonly.tsx";
 import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import { ConvexReactClient } from "convex/react";
@@ -18,6 +18,14 @@ const ScholarshipsPage = lazy(
   () => import("./pages/dashboard/Scholarships.tsx"),
 );
 const ProfilePage = lazy(() => import("./pages/dashboard/Profile.tsx"));
+const AdminOverview = lazy(() => import("./pages/admin/AdminOverview.tsx"));
+const AdminStudents = lazy(() => import("./pages/admin/AdminStudents.tsx"));
+const AdminApplications = lazy(
+  () => import("./pages/admin/AdminApplications.tsx"),
+);
+const AdminScholarships = lazy(
+  () => import("./pages/admin/AdminScholarships.tsx"),
+);
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 // Simple loading fallback for route transitions
@@ -140,6 +148,19 @@ createRoot(document.getElementById("root")!).render(
                 <Route index element={<DashboardOverview />} />
                 <Route path="scholarships" element={<ScholarshipsPage />} />
                 <Route path="profile" element={<ProfilePage />} />
+              </Route>
+              <Route
+                path="/admin"
+                element={
+                  <RequireAdmin>
+                    <DashboardShell />
+                  </RequireAdmin>
+                }
+              >
+                <Route index element={<AdminOverview />} />
+                <Route path="students" element={<AdminStudents />} />
+                <Route path="applications" element={<AdminApplications />} />
+                <Route path="scholarships" element={<AdminScholarships />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

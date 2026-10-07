@@ -8,7 +8,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { RequireAuth } from "@/components/RequireAuth";
-import { getActiveStudent, useScholarStore } from "@/lib/scholar/store";
+import {
+  getActiveStudent,
+  signOutStudent,
+  useScholarStore,
+} from "@/lib/scholar/store";
 import { GraduationCap, Lock } from "lucide-react";
 import type { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router";
@@ -86,4 +90,80 @@ export function RequireStudent({ children }: { children: ReactNode }) {
       <SignInRequired>{children}</SignInRequired>
     </RequireAuth>
   );
+}
+
+/* ---------------------------------------------------------------- */
+/* Admin guard                                                       */
+/* ---------------------------------------------------------------- */
+
+function AdminAccessDenied() {
+  const navigate = useNavigate();
+  const store = useScholarStore();
+  const student = getActiveStudent(store);
+
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-background p-6">
+      <Card className="glass-deep w-full max-w-md border-white/12">
+        <CardHeader className="text-center">
+          <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500">
+            <Lock className="size-6" />
+          </span>
+          <CardTitle className="font-display text-xl">
+            Admin access required
+          </CardTitle>
+          <CardDescription>
+            The admin workspace manages accounts, applications and the
+            scholarship catalogue. Sign in with the admin account to open it.
+          </CardDescription>
+        </CardHeader>
+        <CardFooter className="flex-col gap-2">
+          <Button
+            className="gradient-button w-full border-0"
+            onClick={() => {
+              /* End the current session first — otherwise /auth redirects
+                 the signed-in student straight back to this denied card. */
+              signOutStudent();
+              navigate(`/auth?returnTo=${encodeURIComponent("/admin")}`);
+            }}
+          >
+            Switch to the admin account
+          </Button>
+          {student && (
+            <Button
+              variant="ghost"
+              className="w-full text-muted-foreground"
+              onClick={() => navigate("/dashboard")}
+            >
+              Open my dashboard
+            </Button>
+          )}
+        </CardFooter>
+      </Card>
+    </main>
+  );
+}
+
+/**
+ * Guards the /admin workspace. Signed-out visitors get the normal sign-in
+ * prompt (with returnTo preserved); signed-in non-admins get a clear
+ * access-denied card with a way back to their own workspace.
+ */
+export function RequireAdmin({ children }: { children: ReactNode }) {
+  const store = useScholarStore();
+  const student = getActiveStudent(store);
+
+  if (!student) {
+    return (
+      <RequireAuth
+        title="Sign in to Scholar AI"
+        description="The admin workspace needs the admin account — sign in to continue."
+      >
+        <SignInRequired>{children}</SignInRequired>
+      </RequireAuth>
+    );
+  }
+
+  if (student.role !== "admin") return <AdminAccessDenied />;
+
+  return <>{children}</>;
 }

@@ -1,11 +1,15 @@
 import { useState } from "react";
 import {
+  ClipboardList,
   GraduationCap,
   LayoutDashboard,
   LogOut,
   Menu,
+  ShieldCheck,
   Sparkles,
   User as UserIcon,
+  Users,
+  type LucideIcon,
 } from "lucide-react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router";
 import { BrandLockup } from "@/components/BrandMark";
@@ -24,10 +28,18 @@ import {
   profileCompletion,
   signOutStudent,
   useScholarStore,
+  type Student,
 } from "@/lib/scholar/store";
 import { cn } from "@/lib/utils";
 
-const NAV_ITEMS = [
+type NavItem = {
+  to: string;
+  label: string;
+  icon: LucideIcon;
+  end: boolean;
+};
+
+const NAV_ITEMS: NavItem[] = [
   {
     to: "/dashboard",
     label: "Dashboard",
@@ -48,6 +60,33 @@ const NAV_ITEMS = [
   },
 ];
 
+const ADMIN_NAV_ITEMS: NavItem[] = [
+  {
+    to: "/admin",
+    label: "Overview",
+    icon: LayoutDashboard,
+    end: true,
+  },
+  {
+    to: "/admin/students",
+    label: "Students",
+    icon: Users,
+    end: false,
+  },
+  {
+    to: "/admin/applications",
+    label: "Applications",
+    icon: ClipboardList,
+    end: false,
+  },
+  {
+    to: "/admin/scholarships",
+    label: "Scholarships",
+    icon: GraduationCap,
+    end: false,
+  },
+];
+
 function navClass(isActive: boolean) {
   return cn(
     "flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-medium transition-all",
@@ -57,10 +96,16 @@ function navClass(isActive: boolean) {
   );
 }
 
-function NavList({ onNavigate }: { onNavigate?: () => void }) {
+function NavList({
+  items,
+  onNavigate,
+}: {
+  items: NavItem[];
+  onNavigate?: () => void;
+}) {
   return (
     <nav className="flex flex-col gap-1.5">
-      {NAV_ITEMS.map((item) => (
+      {items.map((item) => (
         <NavLink
           key={item.to}
           to={item.to}
@@ -89,7 +134,66 @@ const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/dashboard/scholarships": "Scholarships",
   "/dashboard/profile": "Profile",
+  "/admin": "Admin",
+  "/admin/students": "Students",
+  "/admin/applications": "Applications",
+  "/admin/scholarships": "Scholarships",
 };
+
+/** Sidebar status card: profile strength for students, review queue for admins. */
+function StatusCard({
+  student,
+  pending,
+  onNavigate,
+}: {
+  student: Student;
+  pending: number;
+  onNavigate: (to: string) => void;
+}) {
+  const completion = profileCompletion(student);
+
+  if (student.role === "admin") {
+    return (
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-muted-foreground">Applications pending</span>
+          <span className="font-semibold text-violet-300">{pending}</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => onNavigate("/admin/applications")}
+          className="mt-2 text-[11px] text-muted-foreground transition-colors hover:text-violet-300"
+        >
+          {pending > 0 ? "Review them now" : "Open the review queue"}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-muted-foreground">Profile strength</span>
+        <span className="font-semibold text-cyan-300">
+          {completion.percent}%
+        </span>
+      </div>
+      <Progress
+        value={completion.percent}
+        className="mt-2 h-1.5 bg-white/10"
+      />
+      <button
+        type="button"
+        onClick={() => onNavigate("/dashboard/profile")}
+        className="mt-2 text-[11px] text-muted-foreground transition-colors hover:text-cyan-300"
+      >
+        {completion.missing.length > 0
+          ? `Add ${completion.missing[0].toLowerCase()} to improve`
+          : "Profile looks complete"}
+      </button>
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const store = useScholarStore();
@@ -131,7 +235,25 @@ export default function Dashboard() {
     );
   }
 
-  const completion = profileCompletion(student);
+  const isAdminWorkspace = location.pathname.startsWith("/admin");
+  const pending = store.applications.filter(
+    (application) =>
+      application.status === "Submitted" ||
+      application.status === "Under review",
+  ).length;
+  const navItems: NavItem[] = isAdminWorkspace
+    ? ADMIN_NAV_ITEMS
+    : student.role === "admin"
+      ? [
+          ...NAV_ITEMS,
+          {
+            to: "/admin",
+            label: "Admin panel",
+            icon: ShieldCheck,
+            end: false,
+          },
+        ]
+      : NAV_ITEMS;
   const title = PAGE_TITLES[location.pathname] ?? "Scholar AI";
 
   return (
@@ -144,41 +266,27 @@ export default function Dashboard() {
       {/* sidebar (desktop) */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-white/8 bg-[#070b24]/90 backdrop-blur-xl lg:flex">
         <div className="px-5 pt-6 pb-5">
-          <BrandLockup onClick={() => navigate("/dashboard")} />
+          <BrandLockup
+            onClick={() => navigate(isAdminWorkspace ? "/admin" : "/dashboard")}
+          />
         </div>
 
         <div className="px-5 pb-3">
           <p className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground uppercase">
-            Student workspace
+            {isAdminWorkspace ? "Admin workspace" : "Student workspace"}
           </p>
         </div>
 
         <div className="flex-1 overflow-y-auto px-3">
-          <NavList />
+          <NavList items={navItems} />
         </div>
 
         <div className="space-y-3 border-t border-white/8 p-4">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Profile strength</span>
-              <span className="font-semibold text-cyan-300">
-                {completion.percent}%
-              </span>
-            </div>
-            <Progress
-              value={completion.percent}
-              className="mt-2 h-1.5 bg-white/10"
-            />
-            <button
-              type="button"
-              onClick={() => navigate("/dashboard/profile")}
-              className="mt-2 text-[11px] text-muted-foreground transition-colors hover:text-cyan-300"
-            >
-              {completion.missing.length > 0
-                ? `Add ${completion.missing[0].toLowerCase()} to improve`
-                : "Profile looks complete"}
-            </button>
-          </div>
+          <StatusCard
+            student={student}
+            pending={pending}
+            onNavigate={navigate}
+          />
 
           <div className="flex items-center gap-3 px-1">
             <span className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 text-xs font-bold text-[#04121c]">
@@ -228,26 +336,23 @@ export default function Dashboard() {
                     <SheetTitle>
                       <BrandLockup onClick={() => {
                         setSheetOpen(false);
-                        navigate("/dashboard");
+                        navigate(isAdminWorkspace ? "/admin" : "/dashboard");
                       }} />
                     </SheetTitle>
                   </SheetHeader>
                   <div className="flex-1 space-y-6 px-2">
-                    <NavList onNavigate={() => setSheetOpen(false)} />
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">
-                          Profile strength
-                        </span>
-                        <span className="font-semibold text-cyan-300">
-                          {completion.percent}%
-                        </span>
-                      </div>
-                      <Progress
-                        value={completion.percent}
-                        className="mt-2 h-1.5 bg-white/10"
-                      />
-                    </div>
+                    <NavList
+                      items={navItems}
+                      onNavigate={() => setSheetOpen(false)}
+                    />
+                    <StatusCard
+                      student={student}
+                      pending={pending}
+                      onNavigate={(to) => {
+                        setSheetOpen(false);
+                        navigate(to);
+                      }}
+                    />
                   </div>
                   <Button
                     variant="outline"
@@ -271,7 +376,11 @@ export default function Dashboard() {
               </span>
               <button
                 type="button"
-                onClick={() => navigate("/dashboard/profile")}
+                onClick={() =>
+                  navigate(
+                    isAdminWorkspace ? "/admin" : "/dashboard/profile",
+                  )
+                }
                 className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 py-1 pr-3 pl-1 transition-colors hover:border-cyan-400/40"
               >
                 <span className="grid size-7 place-items-center rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 text-[10px] font-bold text-[#04121c]">

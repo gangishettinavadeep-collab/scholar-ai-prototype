@@ -28,8 +28,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DEMO_DATA_NOTICE,
-  SCHOLARSHIPS,
   formatDeadline,
+  type Scholarship,
 } from "@/lib/scholar/data";
 import { getActiveStudent, useScholarStore } from "@/lib/scholar/store";
 import { cn } from "@/lib/utils";
@@ -269,10 +269,10 @@ export default function Landing() {
 
   const spotlights = useMemo(
     () =>
-      SPOTLIGHT_IDS.map((id) => SCHOLARSHIPS.find((s) => s.id === id)).filter(
-        (s): s is (typeof SCHOLARSHIPS)[number] => Boolean(s),
-      ),
-    [],
+      SPOTLIGHT_IDS.map((id) =>
+        store.scholarships.find((s) => s.id === id),
+      ).filter((s): s is Scholarship => Boolean(s)),
+    [store.scholarships],
   );
 
   const goAuth = (mode: "login" | "register") => navigate(`/auth?mode=${mode}`);

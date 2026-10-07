@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -8,6 +8,7 @@ import {
   Loader2,
   Lock,
   Mail,
+  ShieldCheck,
   Sparkles,
   User,
 } from "lucide-react";
@@ -38,12 +39,15 @@ import {
   GRAD_YEARS,
 } from "@/lib/scholar/data";
 import {
+  ADMIN_CREDENTIALS,
   DEMO_CREDENTIALS,
   getActiveStudent,
+  isAdmin,
   registerStudent,
   resetStudentPassword,
   signInStudent,
   useScholarStore,
+  type Student,
 } from "@/lib/scholar/store";
 import { cn } from "@/lib/utils";
 
@@ -89,9 +93,25 @@ function Field({
 function Auth({ redirectAfterAuth = "/dashboard" }: AuthProps = {}) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const returnTo = resolveRedirect(searchParams.get("returnTo"), redirectAfterAuth);
+  const requestedReturn = searchParams.get("returnTo");
+  const returnTo = resolveRedirect(requestedReturn, redirectAfterAuth);
   const store = useScholarStore();
   const activeStudent = getActiveStudent(store);
+
+  /**
+   * Where to land after a successful sign-in: an explicit ?returnTo= wins,
+   * otherwise admins go to the /admin workspace and everyone else to the
+   * student dashboard.
+   */
+  const destinationAfterAuth = useCallback(
+    (user: Student | null): string =>
+      requestedReturn?.startsWith("/") && !requestedReturn.startsWith("//")
+        ? returnTo
+        : isAdmin(user)
+          ? "/admin"
+          : redirectAfterAuth,
+    [requestedReturn, returnTo, redirectAfterAuth],
+  );
 
   const [mode, setMode] = useState<"signin" | "register" | "forgot">(() => {
     const requested = searchParams.get("mode");
@@ -105,8 +125,9 @@ function Auth({ redirectAfterAuth = "/dashboard" }: AuthProps = {}) {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    if (activeStudent) navigate(returnTo, { replace: true });
-  }, [activeStudent, navigate, returnTo]);
+    if (activeStudent)
+      navigate(destinationAfterAuth(activeStudent), { replace: true });
+  }, [activeStudent, navigate, destinationAfterAuth]);
 
   const changeMode = (next: "signin" | "register" | "forgot") => {
     setMode(next);
@@ -130,7 +151,7 @@ function Auth({ redirectAfterAuth = "/dashboard" }: AuthProps = {}) {
       return;
     }
     setIsSubmitting(true);
-    navigate(returnTo, { replace: true });
+    navigate(destinationAfterAuth(getActiveStudent()), { replace: true });
   };
 
   const handleRegister = (event: React.FormEvent<HTMLFormElement>) => {
@@ -159,7 +180,7 @@ function Auth({ redirectAfterAuth = "/dashboard" }: AuthProps = {}) {
       return;
     }
     setIsSubmitting(true);
-    navigate(returnTo, { replace: true });
+    navigate(destinationAfterAuth(getActiveStudent()), { replace: true });
   };
 
   const handleForgot = (event: React.FormEvent<HTMLFormElement>) => {
@@ -189,7 +210,21 @@ function Auth({ redirectAfterAuth = "/dashboard" }: AuthProps = {}) {
     const result = signInStudent(DEMO_CREDENTIALS.email, DEMO_CREDENTIALS.password);
     if (result.ok) {
       setIsSubmitting(true);
-      navigate(returnTo, { replace: true });
+      navigate(destinationAfterAuth(getActiveStudent()), { replace: true });
+    } else {
+      setError(result.error);
+    }
+  };
+
+  const useAdminAccount = () => {
+    setError(null);
+    const result = signInStudent(
+      ADMIN_CREDENTIALS.email,
+      ADMIN_CREDENTIALS.password,
+    );
+    if (result.ok) {
+      setIsSubmitting(true);
+      navigate(destinationAfterAuth(getActiveStudent()), { replace: true });
     } else {
       setError(result.error);
     }
@@ -409,6 +444,20 @@ function Auth({ redirectAfterAuth = "/dashboard" }: AuthProps = {}) {
                   <p className="text-center text-[11px] text-muted-foreground">
                     Demo login · {DEMO_CREDENTIALS.email} /{" "}
                     {DEMO_CREDENTIALS.password}
+                  </p>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full border-white/15 bg-white/5 hover:border-violet-400/50"
+                    onClick={useAdminAccount}
+                  >
+                    <ShieldCheck className="size-4" />
+                    Use the admin account
+                  </Button>
+                  <p className="text-center text-[11px] text-muted-foreground">
+                    Admin login · {ADMIN_CREDENTIALS.email} /{" "}
+                    {ADMIN_CREDENTIALS.password}
                   </p>
                 </form>
               )}

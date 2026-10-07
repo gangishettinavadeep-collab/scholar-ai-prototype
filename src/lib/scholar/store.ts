@@ -19,6 +19,8 @@ import {
 
 const STORAGE_KEY = "scholarai.v1.state";
 
+export type Role = "student" | "admin";
+
 export type Student = {
   id: string;
   fullName: string;
@@ -26,6 +28,8 @@ export type Student = {
   phone: string;
   /** Prototype-only credential stored locally — never sent anywhere. */
   password: string;
+  /** "admin" unlocks the /admin workspace. Defaults to "student". */
+  role: Role;
   college: string;
   degree: string;
   branch: string;
@@ -46,7 +50,7 @@ export type Application = {
   refName: string;
   organization: string;
   submittedAt: number;
-  status: "Submitted" | "Under review";
+  status: "Submitted" | "Under review" | "Approved" | "Rejected";
   statement: string;
 };
 
@@ -54,7 +58,23 @@ export type StoreState = {
   students: Student[];
   activeId: string | null;
   applications: Application[];
+  /** Mutable catalogue: seeded from the demo data, managed by the admin. */
+  scholarships: Scholarship[];
 };
+
+/** Badge tone for an application status (shared by student + admin UIs). */
+export function statusTone(status: Application["status"]): string {
+  switch (status) {
+    case "Under review":
+      return "border-amber-300/30 bg-amber-400/10 text-amber-200";
+    case "Approved":
+      return "border-emerald-300/30 bg-emerald-400/10 text-emerald-200";
+    case "Rejected":
+      return "border-rose-300/30 bg-rose-400/10 text-rose-200";
+    default:
+      return "border-cyan-300/30 bg-cyan-400/10 text-cyan-200";
+  }
+}
 
 export type RegistrationInput = {
   fullName: string;
@@ -90,6 +110,37 @@ export const DEMO_CREDENTIALS = {
   password: "demo1234",
 };
 
+/** Sign-in for the admin workspace at /admin. */
+export const ADMIN_CREDENTIALS = {
+  email: "admin@scholar.ai",
+  password: "admin1234",
+};
+
+export function isAdmin(student: Student | null | undefined): boolean {
+  return student?.role === "admin";
+}
+
+function seedAdmin(): Student {
+  return {
+    id: "user-admin-scholarai",
+    fullName: "Scholar AI Admin",
+    email: ADMIN_CREDENTIALS.email,
+    phone: "+91 90000 00000",
+    password: ADMIN_CREDENTIALS.password,
+    college: "Scholar AI",
+    degree: "B.Tech",
+    branch: "Other",
+    gradYear: "2027",
+    skills: ["Operations", "Review", "Analytics"],
+    careerInterest: "Software Development",
+    bio: "Platform administrator for the Scholar AI prototype — reviews applications and manages the opportunity catalogue.",
+    portfolio: "",
+    demo: true,
+    role: "admin",
+    createdAt: Date.now() - 1000 * 60 * 60 * 24 * 30,
+  };
+}
+
 function seedState(): StoreState {
   const demoStudent: Student = {
     id: "student-demo-jayanth",
@@ -97,6 +148,7 @@ function seedState(): StoreState {
     email: DEMO_CREDENTIALS.email,
     phone: "+91 98765 43210",
     password: DEMO_CREDENTIALS.password,
+    role: "student",
     college: "Sri Venkateswara Institute of Technology",
     degree: "B.Tech",
     branch: "CSE",
@@ -138,9 +190,10 @@ function seedState(): StoreState {
   ];
 
   return {
-    students: [demoStudent],
+    students: [seedAdmin(), demoStudent],
     activeId: null,
     applications: demoApplications,
+    scholarships: [...SCHOLARSHIPS],
   };
 }
 
@@ -158,12 +211,26 @@ function readState(): StoreState {
       return seeded;
     }
     const parsed = JSON.parse(raw) as Partial<StoreState>;
+    /* Backfill state saved before roles / the admin account / scholarships
+       existed, so installs from earlier sessions gain the admin cleanly. */
+    const students = (
+      Array.isArray(parsed.students) ? parsed.students : []
+    ).map((student): Student => ({
+      ...student,
+      role: student.role === "admin" ? "admin" : "student",
+    }));
+    if (!students.some((student) => student.role === "admin")) {
+      students.unshift(seedAdmin());
+    }
     return {
-      students: Array.isArray(parsed.students) ? parsed.students : [],
+      students,
       activeId: typeof parsed.activeId === "string" ? parsed.activeId : null,
       applications: Array.isArray(parsed.applications)
         ? parsed.applications
         : [],
+      scholarships: Array.isArray(parsed.scholarships)
+        ? parsed.scholarships
+        : [...SCHOLARSHIPS],
     };
   } catch {
     return seedState();
@@ -248,6 +315,7 @@ export function registerStudent(input: RegistrationInput): ActionResult {
     careerInterest: input.careerInterest,
     bio: "",
     portfolio: "",
+    role: "student",
     createdAt: Date.now(),
   };
   writeState({
@@ -306,6 +374,46 @@ export function updateSkills(studentId: string, rawSkills: string) {
   updateStudent(studentId, { skills: parseSkills(rawSkills) });
 }
 
+export function setStudentRole(studentId: string, role: Role): ActionResult {
+  if (state.activeId === studentId && role !== "admin") {
+    return {
+      ok: false,
+      error: "You can't remove admin from the account you're signed in as.",
+    };
+  }
+  if (!state.students.some((s) => s.id === studentId)) {
+    return { ok: false, error: "Account not found." };
+  }
+  writeState({
+    ...state,
+    students: state.students.map((s) =>
+      s.id === studentId ? { ...s, role } : s,
+    ),
+  });
+  return { ok: true };
+}
+
+/** Removes an account and everything it submitted. */
+export function removeStudent(studentId: string): ActionResult {
+  if (state.activeId === studentId) {
+    return {
+      ok: false,
+      error: "You can't remove the account you're signed in as.",
+    };
+  }
+  if (!state.students.some((s) => s.id === studentId)) {
+    return { ok: false, error: "Account not found." };
+  }
+  writeState({
+    ...state,
+    students: state.students.filter((s) => s.id !== studentId),
+    applications: state.applications.filter(
+      (application) => application.studentId !== studentId,
+    ),
+  });
+  return { ok: true };
+}
+
 /* ---------------------------------------------------------------- */
 /* Applications                                                      */
 /* ---------------------------------------------------------------- */
@@ -341,6 +449,51 @@ export function applicationsFor(
   return store.applications
     .filter((application) => application.studentId === studentId)
     .sort((a, b) => b.submittedAt - a.submittedAt);
+}
+
+export function setApplicationStatus(
+  applicationId: string,
+  status: Application["status"],
+): ActionResult {
+  if (!state.applications.some((a) => a.id === applicationId)) {
+    return { ok: false, error: "Application not found." };
+  }
+  writeState({
+    ...state,
+    applications: state.applications.map((application) =>
+      application.id === applicationId ? { ...application, status } : application,
+    ),
+  });
+  return { ok: true };
+}
+
+/* ---------------------------------------------------------------- */
+/* Admin — scholarship catalogue                                     */
+/* ---------------------------------------------------------------- */
+
+/** Adds a scholarship or overwrites the one with the same id. */
+export function saveScholarship(scholarship: Scholarship): ActionResult {
+  const exists = state.scholarships.some((s) => s.id === scholarship.id);
+  writeState({
+    ...state,
+    scholarships: exists
+      ? state.scholarships.map((s) =>
+          s.id === scholarship.id ? scholarship : s,
+        )
+      : [...state.scholarships, scholarship],
+  });
+  return { ok: true };
+}
+
+export function removeScholarship(scholarshipId: string): ActionResult {
+  if (!state.scholarships.some((s) => s.id === scholarshipId)) {
+    return { ok: false, error: "Scholarship not found." };
+  }
+  writeState({
+    ...state,
+    scholarships: state.scholarships.filter((s) => s.id !== scholarshipId),
+  });
+  return { ok: true };
 }
 
 export function hasApplied(
@@ -398,7 +551,7 @@ export function recommendedScholarships(
   student: ProfileLike | null,
   limit?: number,
 ): Scholarship[] {
-  const ranked = SCHOLARSHIPS.filter(
+  const ranked = state.scholarships.filter(
     (scholarship) => !isExpired(scholarship.deadline),
   )
     .map((scholarship) => ({

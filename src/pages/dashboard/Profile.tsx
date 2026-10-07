@@ -44,6 +44,7 @@ import {
   applicationsFor,
   getActiveStudent,
   profileCompletion,
+  statusTone,
   updateStudent,
   useScholarStore,
 } from "@/lib/scholar/store";
@@ -306,11 +307,7 @@ export default function Profile() {
                         </div>
                         <Badge
                           variant="outline"
-                          className={
-                            application.status === "Under review"
-                              ? "border-amber-300/40 bg-amber-400/10 text-amber-200"
-                              : "border-cyan-400/40 bg-cyan-400/10 text-cyan-200"
-                          }
+                          className={statusTone(application.status)}
                         >
                           {application.status}
                         </Badge>
